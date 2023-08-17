@@ -5,6 +5,12 @@ const UsersController = require("../controllers/usersController") //import da cl
 const usersController = new UsersController()//instânciar a classe 
 
 
+// function middleware(request, response, next){
+//   console.log("voce passou pelo middleware")
+//   next()
+// }
+
+
 //todas as vezes que a rota userRouters for chamada eu quero usar o meu controller
 usersRoutes.post("/", usersController.create);
 
