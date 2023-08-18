@@ -1,14 +1,17 @@
 require("express-async-errors"); //import da biblioteca espress error
 const appError = require("./utils/appError") //import do arquivo appError
-
+const migrationsRun = require("./dataBase/sqlite/migrations")// import do arquivo database sqlite
 
 const express = require("express"); // importa o express
 const app = express(); // inicializar o express
 app.use(express.json()); // Padrão utilizado para responder o corpo(body), método POST
 
+
+
 const routes = require("./routes") // rotas importadas
 app.use(routes);
 
+migrationsRun();
 
 
 
