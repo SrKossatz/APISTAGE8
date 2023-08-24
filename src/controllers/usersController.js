@@ -1,6 +1,6 @@
 const AppError = require("../utils/appError"); //import
 const sqliteConnection = require("../dataBase/sqlite"); //import
-const { hash } = require("bcryptjs");
+const { hash, compare } = require("bcryptjs");
 
 class UsersController {
   async create(request, response) {
@@ -29,7 +29,7 @@ class UsersController {
   }
 
   async update(request, response) {
-    const { name, email } = request.body;
+    const { name, email, password, old_password } = request.body;
     const { id } = request.params;
     //código para criar a conexão com o usuário
     const database = await sqliteConnection();
@@ -48,15 +48,31 @@ class UsersController {
     user.name = name;
     user.email = email ;
 
+    if(password && !old_password){
+      throw new AppError("Você precisa informar a senha antiga para definir a nova senha")
+    }
+    //if criado para comparação de senha criptografada
+    if(password && old_password){
+      const checkOldPassword = await compare(old_password, user.password);
+
+      if(!checkOldPassword){
+        throw new AppError("A senha antiga não confere.")
+      }
+
+      user.password = await hash(password, 8)
+    }
+
+
     //await criado para executar o database com o run e realizar o update
     await database.run(`
       UPDATE users SET
       name = ?,
       email = ?,
+      password = ?,
       updated_at = ?
       WHERE id = ?`,
 
-      [user.name, user.email, new Date(), user.id] 
+      [user.name, user.email, user.password, new Date(), user.id] 
                  
     );
 
