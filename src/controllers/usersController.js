@@ -1,40 +1,71 @@
 const AppError = require("../utils/appError"); //import
-const sqliteConnection = require("../dataBase/sqlite") //import 
-const {hash} = require("bcryptjs")
+const sqliteConnection = require("../dataBase/sqlite"); //import
+const { hash } = require("bcryptjs");
 
-class UsersController{
-  async create(request, response){
-
-    const {name, email, password} = request.body;
-    const database = await sqliteConnection()
+class UsersController {
+  async create(request, response) {
+    const { name, email, password } = request.body;
+    const database = await sqliteConnection();
     //linha para checar se o e-mail do usuário já está cadastrado
-    const checkUsersExist = await database.get("SELECT * FROM users WHERE email = (?)", [email])
+    const checkUsersExist = await database.get(
+      "SELECT * FROM users WHERE email = (?)",
+      [email]
+    );
 
-    if(checkUsersExist){
-      throw new AppError("Este e-mail já está em uso")
+    if (checkUsersExist) {
+      throw new AppError("Este e-mail já está em uso");
     }
 
     //função hash é uma promisse, portanto tem que usar o await para aguardar ela retornar com a resposta
-    const hashedPassword = await hash( password, 8)
-
+    const hashedPassword = await hash(password, 8);
 
     //codigo para inserir informações/registros no banco de dados
     await database.run(
       "INSERT INTO users(name, email, password) VALUES (?, ?, ?)",
       [name, email, hashedPassword]
-    )
+    );
 
-    return response.status(201).json()
+    return response.status(201).json();
   }
 
-  
+  async update(request, response) {
+    const { name, email } = request.body;
+    const { id } = request.params;
+    //código para criar a conexão com o usuário
+    const database = await sqliteConnection();
+    //método para selecionar o usuário pelo ID na tabela
+    const user = await database.get("SELECT * FROM users WHERE id = (?)", [id]);
+    if(!user){
+      throw new AppError("Usuário não encontrado")
+    }
+
+    const userWhithUpdatedEmail = await database.get("SELECT * FROM users WHERE email = (?)", [email])
+
+    if(userWhithUpdatedEmail && userWhithUpdatedEmail.id !== user.id){
+      throw new AppError("Este e-mail já está em uso.");
+    }
+
+    user.name = name;
+    user.email = email ;
+
+    //await criado para executar o database com o run e realizar o update
+    await database.run(`
+      UPDATE users SET
+      name = ?,
+      email = ?,
+      updated_at = ?
+      WHERE id = ?`,
+
+      [user.name, user.email, new Date(), user.id] 
+                 
+    );
+
+    return response.json();
+
+  }
 }
 
-
-
-
-module.exports = UsersController
-
+module.exports = UsersController;
 
 /*
 Boas práticas para usar uma classe controller. Podemos ter até 5 métodos internos 
