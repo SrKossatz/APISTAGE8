@@ -1,7 +1,7 @@
 const { Router } = require("express"); // import da Router de dentro do express
 const usersRoutes = Router() // inicializa o Router
 
-const UsersController = require("../controllers/usersController") //import da classe
+const UsersController = require("../controllers/UsersController") //import da classe
 const usersController = new UsersController()//instânciar a classe 
 
 
