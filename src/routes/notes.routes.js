@@ -12,6 +12,7 @@ const notesController = new NotesController()//instânciar a classe
 
 
 //todas as vezes que a rota userRouters for chamada eu quero usar o meu controller
+notesRoutes.get("/", notesController.index);
 notesRoutes.post("/:user_id", notesController.create);
 notesRoutes.get("/:id", notesController.show);
 notesRoutes.delete("/:id", notesController.delete);
